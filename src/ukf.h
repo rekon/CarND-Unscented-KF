@@ -68,7 +68,7 @@ public:
   double lambda_;
 
   ///* Store timestamp
-  double previous_timestamp;
+  double previous_timestamp_;
 
 
   /**
