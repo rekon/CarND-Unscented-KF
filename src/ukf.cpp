@@ -19,10 +19,10 @@ UKF::UKF() {
   use_radar_ = true;
 
   // initial state vector
-  x_ = VectorXd(5);
+  x_ = VectorXd::Zero(5);
 
   // initial covariance matrix
-  P_ = MatrixXd(5, 5);
+  P_ = MatrixXd::Identity(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
   std_a_ = 3;
@@ -80,6 +80,9 @@ UKF::UKF() {
     double weight = 0.5/(n_aug_+lambda_);
     weights_(i) = weight;
   }
+
+  //create matrix with predicted sigma points as columns
+  Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
 }
 
 UKF::~UKF() {}
@@ -120,14 +123,15 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
 	previous_timestamp_ = meas_package.timestamp_;
+  std::cout<<"Delta Time: "<<dt<<std::endl;
 
   Prediction(dt);
 
   if( meas_package.sensor_type_ == MeasurementPackage::LASER ){
-    std::cout << "Lidar Upadte" << std::endl;
+    std::cout << "Lidar Update" << std::endl;
     UpdateLidar( meas_package );
   } else {
-    std::cout << "Radar Upadte" << std::endl;
+    std::cout << "Radar Update" << std::endl;
     UpdateRadar( meas_package );
   }
 
@@ -151,13 +155,13 @@ void UKF::Prediction(double delta_t) {
   */
 
   //create augmented mean vector
-  VectorXd x_aug = VectorXd(7);
+  VectorXd x_aug = VectorXd::Zero(n_aug_);
 
   //create augmented state covariance
-  MatrixXd P_aug = MatrixXd(7, 7);
+  MatrixXd P_aug = MatrixXd::Zero(n_aug_, n_aug_);
 
   //create sigma point matrix
-  MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+  MatrixXd Xsig_aug = MatrixXd::Zero(n_aug_, 2 * n_aug_ + 1);
 
   //create augmented mean state
   x_aug.head(5) = x_;
@@ -181,9 +185,7 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_) * L.col(i);
   }
 
-  //create matrix with predicted sigma points as columns
-  Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
-
+  Xsig_pred_.fill(0.0);
   //predict sigma points
   for (int i = 0; i< 2*n_aug_+1; i++)
   {
@@ -201,8 +203,8 @@ void UKF::Prediction(double delta_t) {
 
     //avoid division by zero
     if (fabs(yawd) > 0.001) {
-        px_p = p_x + v/yawd * ( sin (yaw + yawd*delta_t) - sin(yaw));
-        py_p = p_y + v/yawd * ( cos(yaw) - cos(yaw+yawd*delta_t) );
+        px_p = p_x + v/yawd * ( sin(yaw + yawd*delta_t) - sin(yaw));
+        py_p = p_y + v/yawd * ( cos(yaw) - cos(yaw + yawd*delta_t));
     }
     else {
         px_p = p_x + v*delta_t*cos(yaw);
@@ -391,7 +393,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   R <<    std_radr_ * std_radr_, 0, 0,
           0, std_radphi_ * std_radphi_, 0,
-          0, 0,std_radrd_ * std_radrd_;
+          0, 0, std_radrd_ * std_radrd_;
   S = S + R;
 
   //calculate cross correlation matrix
