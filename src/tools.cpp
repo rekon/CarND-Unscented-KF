@@ -40,3 +40,26 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 	//return the result
 	return rmse;
 }
+
+void Tools::printNIS( const vector<double> samples ){
+	
+	if( samples.size() > 494 ){
+		float 
+			total = samples.size(),
+			cat_1 = 0,
+			cat_2 = 0,
+			cat_3 = 0,
+			cat_4 = 0;
+		for( int i=0; i<total; i++){
+			if( samples[i] > 0.352) cat_1++ ;
+			if( samples[i] > 0.584) cat_2++ ;
+			if( samples[i] > 6.251) cat_3++ ;
+			if( samples[i] > 7.815) cat_4++ ;
+		}
+		std::cout<<"\nValues above 0.352 ( =0.95) : "<<cat_1/total<<std::endl;
+		// std::cout<<"Values above 0.584 ( =0.90) : "<<cat_2/total<<std::endl;
+		// std::cout<<"Values above 6.251 ( =0.10) : "<<cat_3/total<<std::endl;
+		std::cout<<"Values above 7.815 ( =0.05) : "<<cat_4/total<<std::endl;
+	}
+	return;
+}

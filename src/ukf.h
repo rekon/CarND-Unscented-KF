@@ -2,6 +2,7 @@
 #define UKF_H
 
 #include "measurement_package.h"
+#include "tools.h"
 #include "Eigen/Dense"
 #include <vector>
 #include <string>
@@ -70,6 +71,10 @@ public:
   ///* Store timestamp
   double previous_timestamp_;
 
+  ///* Store NIS
+  std::vector<double> measurement_NIS_data_;
+
+  Tools tools;
 
   /**
    * Constructor
@@ -98,13 +103,13 @@ public:
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateLidar(MeasurementPackage meas_package);
+  double UpdateLidar(MeasurementPackage meas_package);
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateRadar(MeasurementPackage meas_package);
+  double UpdateRadar(MeasurementPackage meas_package);
 };
 
 #endif /* UKF_H */

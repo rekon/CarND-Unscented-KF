@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd::Identity(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 2;
+  std_a_ = 25;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = M_PI/4.0;
+  std_yawdd_ = M_PI/4.5;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -127,17 +127,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   Prediction(dt);
 
+  double NIS;
   if( meas_package.sensor_type_ == MeasurementPackage::LASER ){
     // std::cout << "Lidar Update" << std::endl;
-    UpdateLidar( meas_package );
+    NIS = UpdateLidar( meas_package );
   } else {
     // std::cout << "Radar Update" << std::endl;
-    UpdateRadar( meas_package );
+    NIS = UpdateRadar( meas_package );
   }
 
   // print the output
   // std::cout << "x_ = " << x_ << std::endl;
   // std::cout << "P_ = " << P_ << std::endl;
+
+  measurement_NIS_data_.push_back(NIS);
+  tools.printNIS(measurement_NIS_data_);
 }
 
 /**
@@ -237,7 +241,7 @@ void UKF::Prediction(double delta_t) {
  * Updates the state and the state covariance matrix using a laser measurement.
  * @param {MeasurementPackage} meas_package
  */
-void UKF::UpdateLidar(MeasurementPackage meas_package) {
+double UKF::UpdateLidar(MeasurementPackage meas_package) {
   /**
   TODO:
 
@@ -345,13 +349,17 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   x_ = x_pred + K * z_diff;
   P_ = P_pred - K*S*K.transpose();
+
+  double NIS = z_diff.transpose() * S.inverse() * z_diff;
+  // std::cout<<"Lidar NIS: "<<NIS<<std::endl;
+  return NIS;
 }
 
 /**
  * Updates the state and the state covariance matrix using a radar measurement.
  * @param {MeasurementPackage} meas_package
  */
-void UKF::UpdateRadar(MeasurementPackage meas_package) {
+double UKF::UpdateRadar(MeasurementPackage meas_package) {
   /**
   TODO:
 
@@ -478,4 +486,8 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   //update state mean and covariance matrix
   x_ = x_pred + K * z_diff;
   P_ = P_pred - K*S*K.transpose();
+
+  double NIS = z_diff.transpose() * S.inverse() * z_diff;
+  // std::cout<<"Radar NIS: "<<NIS<<std::endl;
+  return NIS;
 }
