@@ -72,7 +72,8 @@ public:
   double previous_timestamp_;
 
   ///* Store NIS
-  std::vector<double> measurement_NIS_data_;
+  std::vector<double> measurement_NIS_lidar_;
+  std::vector<double> measurement_NIS_radar_;
 
   Tools tools;
 

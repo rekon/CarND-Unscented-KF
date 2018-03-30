@@ -24,7 +24,7 @@ public:
   */
   VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorXd> &ground_truth);
 
-  void printNIS( const vector<double> samples );
+  void printNIS( const vector<double> samples, string msg , bool is_radar);
 
 };
 
