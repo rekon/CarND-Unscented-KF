@@ -54,10 +54,10 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
-  P_ << 1e-5, 0, 0, 0, 0,
-        0, 1e-5, 0, 0, 0,
+  P_ << 1e-7, 0, 0, 0, 0,
+        0, 1e-6, 0, 0, 0,
         0, 0, 1, 0, 0,
-        0, 0, 0, 1, 0,
+        0, 0, 0, 0.1, 0,
         0, 0, 0, 0, 1;
 
   is_initialized_ = false;
@@ -228,7 +228,6 @@ void UKF::Prediction(double delta_t) {
 
     yaw_p = yaw_p + 0.5*nu_yawdd*delta_t*delta_t;
     yawd_p = yawd_p + nu_yawdd*delta_t;
-    // yaw_p = atan2( sin(yaw_p), cos(yaw_p) );
     
     //write predicted sigma point into right column
     Xsig_pred_(0,i) = px_p;
@@ -257,8 +256,6 @@ void UKF::Prediction(double delta_t) {
 
     P_ = P_ + weights_(i) * x_diff * x_diff.transpose() ;
   }
-
-  // x_(3) = atan2( sin(x_(3)), cos(x_(3)) );
   
 }
 
@@ -320,8 +317,8 @@ double UKF::UpdateLidar(MeasurementPackage meas_package) {
     S = S + weights_(i) * z_diff * z_diff.transpose();
   }
 
-  R << std_laspx_ * std_laspx_, 0,
-      0, std_laspy_ * std_laspy_;
+  R << std_laspx_ * std_laspx_, 0.0,
+      0.0, std_laspy_ * std_laspy_;
   S = S + R;
 
   //calculate cross correlation matrix
@@ -414,7 +411,6 @@ double UKF::UpdateRadar(MeasurementPackage meas_package) {
   for (int i=0; i < 2*n_aug_+1; i++) {
       z_pred = z_pred + weights_(i) * Zsig.col(i);
   }
-  // z_pred(1) = atan2( sin(z_pred(1)), cos(z_pred(1)) );
 
   S.fill(0.0);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
@@ -428,9 +424,9 @@ double UKF::UpdateRadar(MeasurementPackage meas_package) {
     S = S + weights_(i) * z_diff * z_diff.transpose();
   }
 
-  R <<    std_radr_ * std_radr_, 0, 0,
-          0, std_radphi_ * std_radphi_, 0,
-          0, 0, std_radrd_ * std_radrd_;
+  R <<    std_radr_ * std_radr_, 0.0, 0.0,
+          0.0, std_radphi_ * std_radphi_, 0.0,
+          0.0, 0.0, std_radrd_ * std_radrd_;
   S = S + R;
 
   //calculate cross correlation matrix
